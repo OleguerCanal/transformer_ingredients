@@ -1,6 +1,7 @@
 # Transformer Ingredients
 
-Collection of minimal building blocks for transformer-based neural networks.
+Collection of **minimal** building blocks for transformer-based neural networks in PyTorch.
+
 It seems that I'm gonna be playing with a lot of transformer-based architectures and I wanted to have a package I can add to other repos with common building blocks.
 
 
