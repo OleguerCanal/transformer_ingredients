@@ -1,5 +1,6 @@
 from torch import nn
 
+from .masking import get_attn_pad_mask
 from .modules import (
     PositionalEncoding,
     MultiHeadAttention,
@@ -32,7 +33,8 @@ class TransformerEncoderLayer(nn.Module):
             dropout_p: float = 0.3,
     ) -> None:
         super(TransformerEncoderLayer, self).__init__()
-        assert d_model % num_heads == 0
+        assert d_model % num_heads == 0  # d_model must be a multiple of num_heads
+
         self.self_attention = MultiHeadAttention(d_model, num_heads)
         self.attention_norm = nn.LayerNorm(d_model)
         self.feed_forward = PositionwiseFeedForward(d_model, d_ff, dropout_p)
@@ -98,6 +100,7 @@ class TransformerEncoder(OpenspeechEncoder):
             dropout_p: float = 0.3,
     ) -> None:
         super(TransformerEncoder, self).__init__()
+        assert d_model % num_heads == 0  # d_model must be a multiple of num_heads
 
         self.input_proj = Linear(input_dim, d_model)
         self.input_norm = nn.LayerNorm(d_model)
@@ -115,7 +118,7 @@ class TransformerEncoder(OpenspeechEncoder):
     def forward(
             self,
             inputs: torch.Tensor,
-            input_lengths: torch.Tensor,
+            input_lengths: torch.Tensor = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         r"""
         Forward propagate a `inputs` for  encoders training.
@@ -130,11 +133,12 @@ class TransformerEncoder(OpenspeechEncoder):
         """
         self_attn_mask = get_attn_pad_mask(inputs, input_lengths, inputs.size(1))
 
-        outputs = self.input_norm(self.input_proj(inputs))
-        outputs += self.positional_encoding(outputs.size(1))
-        outputs = self.input_dropout(outputs)
+        x = self.input_proj(inputs)
+        x = self.input_norm(x)
+        x += self.positional_encoding(x.size(1))
+        x = self.input_dropout(x)
 
         for layer in self.layers:
-            outputs, attn = layer(outputs, self_attn_mask)
+            x, _ = layer(x, self_attn_mask)
 
-        return outputs, input_lengths
+        return x, input_lengths

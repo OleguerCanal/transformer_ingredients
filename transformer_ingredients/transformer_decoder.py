@@ -2,10 +2,13 @@ import random
 import torch
 from torch import nn
 
+from .masking import get_attn_pad_mask, get_attn_subsequent_mask
 from .modules import (
+    Linear,
     PositionalEncoding,
     MultiHeadAttention,
-    PositionwiseFeedForward
+    PositionwiseFeedForward,
+    TransformerEmbedding
 )
 
 class TransformerDecoderLayer(nn.Module):
@@ -39,6 +42,8 @@ class TransformerDecoderLayer(nn.Module):
             dropout_p: float = 0.3,
     ) -> None:
         super(TransformerDecoderLayer, self).__init__()
+        assert d_model % num_heads == 0  # d_model must be a multiple of num_heads
+
         self.self_attention_prenorm = nn.LayerNorm(d_model)
         self.decoder_attention_prenorm = nn.LayerNorm(d_model)
         self.feed_forward_prenorm = nn.LayerNorm(d_model)
@@ -66,21 +71,21 @@ class TransformerDecoderLayer(nn.Module):
             encoder_attn (torch.FloatTensor): output of encoder attention
         """
         residual = inputs
-        inputs = self.self_attention_prenorm(inputs)
-        outputs, self_attn = self.self_attention(inputs, inputs, inputs, self_attn_mask)
-        outputs += residual
+        x = self.self_attention_prenorm(inputs)
+        x, self_attn = self.self_attention(x, x, x, self_attn_mask)
+        x += residual
 
-        residual = outputs
-        outputs = self.decoder_attention_prenorm(outputs)
-        outputs, encoder_attn = self.decoder_attention(outputs, encoder_outputs, encoder_outputs, encoder_attn_mask)
-        outputs += residual
+        residual = x
+        x = self.decoder_attention_prenorm(x)
+        x, encoder_attn = self.decoder_attention(x, encoder_outputs, encoder_outputs, encoder_attn_mask)
+        x += residual
 
-        residual = outputs
-        outputs = self.feed_forward_prenorm(outputs)
-        outputs = self.feed_forward(outputs)
-        outputs += residual
+        residual = x
+        x = self.feed_forward_prenorm(x)
+        x = self.feed_forward(x)
+        x += residual
 
-        return outputs, self_attn, encoder_attn
+        return x, self_attn, encoder_attn
 
 
 class TransformerDecoder(OpenspeechDecoder):
@@ -115,9 +120,7 @@ class TransformerDecoder(OpenspeechDecoder):
             max_length: int = 128,
     ) -> None:
         super(TransformerDecoder, self).__init__()
-        self.d_model = d_model
-        self.num_layers = num_layers
-        self.num_heads = num_heads
+        assert d_model % num_heads == 0  # d_model must be a multiple of num_heads
         self.max_length = max_length
         self.pad_id = pad_id
         self.sos_id = sos_id
@@ -149,6 +152,7 @@ class TransformerDecoder(OpenspeechDecoder):
             encoder_output_lengths: torch.Tensor,
             positional_encoding_length: int,
     ) -> torch.Tensor:
+        # Merge masks
         dec_self_attn_pad_mask = get_attn_pad_mask(
             decoder_inputs, decoder_input_lengths, decoder_inputs.size(1)
         )
