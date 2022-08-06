@@ -32,6 +32,7 @@ class TransformerEncoderLayer(nn.Module):
             dropout_p: float = 0.3,
     ) -> None:
         super(TransformerEncoderLayer, self).__init__()
+        assert d_model % num_heads == 0
         self.self_attention = MultiHeadAttention(d_model, num_heads)
         self.attention_norm = nn.LayerNorm(d_model)
         self.feed_forward = PositionwiseFeedForward(d_model, d_ff, dropout_p)
@@ -89,7 +90,6 @@ class TransformerEncoder(OpenspeechEncoder):
 
     def __init__(
             self,
-            num_classes: int,
             input_dim: int = 80,
             d_model: int = 512,
             d_ff: int = 2048,
@@ -99,12 +99,6 @@ class TransformerEncoder(OpenspeechEncoder):
     ) -> None:
         super(TransformerEncoder, self).__init__()
 
-        self.num_classes = num_classes
-        self.joint_ctc_attention = joint_ctc_attention
-
-        self.d_model = d_model
-        self.num_layers = num_layers
-        self.num_heads = num_heads
         self.input_proj = Linear(input_dim, d_model)
         self.input_norm = nn.LayerNorm(d_model)
         self.input_dropout = nn.Dropout(p=dropout_p)
