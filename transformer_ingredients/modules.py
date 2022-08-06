@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from torch import Tensor
 import torch.nn.functional as F
 
 
@@ -163,3 +164,37 @@ class PositionalEncoding(nn.Module):
 
     def forward(self, length: int) -> Tensor:
         return self.pe[:, :length]
+
+class TransformerEmbedding(nn.Module):
+    r"""
+    Embedding layer. Similarly to other sequence transduction models, transformer use learned embeddings
+    to convert the input tokens and output tokens to vectors of dimension d_model.
+    In the embedding layers, transformer multiply those weights by sqrt(d_model)
+
+    Args:
+        num_embeddings (int): the number of embedding size
+        pad_id (int): identification of pad token
+        d_model (int): dimension of model
+
+    Inputs:
+        inputs (torch.FloatTensor): input of embedding layer
+
+    Returns:
+        outputs (torch.FloatTensor): output of embedding layer
+    """
+    def __init__(self, num_embeddings: int, pad_id: int, d_model: int = 512) -> None:
+        super(TransformerEmbedding, self).__init__()
+        self.sqrt_dim = torch.sqrt(d_model)
+        self.embedding = nn.Embedding(num_embeddings, d_model, padding_idx=pad_id)
+
+    def forward(self, inputs: Tensor) -> Tensor:
+        r"""
+        Forward propagate of embedding layer.
+
+        Inputs:
+            inputs (torch.FloatTensor): input of embedding layer
+
+        Returns:
+            outputs (torch.FloatTensor): output of embedding layer
+        """
+        return self.embedding(inputs) * self.sqrt_dim
