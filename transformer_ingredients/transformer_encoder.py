@@ -92,7 +92,7 @@ class TransformerEncoder(OpenspeechEncoder):
 
     def __init__(
             self,
-            input_dim: int = 80,
+            input_dim: int,
             d_model: int = 512,
             d_ff: int = 2048,
             num_layers: int = 6,
