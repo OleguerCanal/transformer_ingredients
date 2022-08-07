@@ -1,4 +1,7 @@
-from torch import nn
+from typing import (Tuple, Optional)
+
+import torch
+from torch import (nn, Tensor)
 
 from .masking import get_attn_pad_mask
 from .modules import (
@@ -63,7 +66,7 @@ class TransformerEncoderLayer(nn.Module):
         return outputs, attn
 
 
-class TransformerEncoder(OpenspeechEncoder):
+class TransformerEncoder(nn.Module):
     r"""
     The TransformerEncoder is composed of a stack of N identical layers.
     Each layer has two sub-layers. The first is a multi-head self-attention mechanism,

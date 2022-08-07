@@ -1,8 +1,10 @@
 import random
-import torch
-from torch import nn
+from typing import (Tuple, Optional)
 
-from .masking import get_attn_pad_mask, get_attn_subsequent_mask
+import torch
+from torch import (nn, Tensor)
+
+from .masking import (get_attn_pad_mask, get_attn_subsequent_mask)
 from .modules import (
     Linear,
     PositionalEncoding,
@@ -88,7 +90,7 @@ class TransformerDecoderLayer(nn.Module):
         return x, self_attn, encoder_attn
 
 
-class TransformerDecoder(OpenspeechDecoder):
+class TransformerDecoder(nn.Module):
     r"""
     The TransformerDecoder is composed of a stack of N identical layers.
     Each layer has three sub-layers. The first is a multi-head self-attention mechanism,
