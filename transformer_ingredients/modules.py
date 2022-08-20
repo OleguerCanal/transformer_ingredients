@@ -1,8 +1,10 @@
+import math
 from typing import (Tuple, Optional)
 
 import torch
 from torch import (nn, Tensor)
 import torch.nn.functional as F
+import torch.nn.init as init
 
 
 class Linear(nn.Module):
@@ -60,7 +62,7 @@ class ScaledDotProductAttention(nn.Module):
     """
     def __init__(self, dim: int):
         super(ScaledDotProductAttention, self).__init__()
-        self.sqrt_dim = torch.sqrt(dim)
+        self.sqrt_dim = math.sqrt(dim)
 
     def forward(self, query: Tensor, key: Tensor, value: Tensor, mask: Optional[Tensor] = None) -> Tuple[Tensor, Tensor]:
         score = torch.bmm(query, key.transpose(1, 2)) / self.sqrt_dim

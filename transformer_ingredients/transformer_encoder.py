@@ -5,6 +5,7 @@ from torch import (nn, Tensor)
 
 from .masking import get_attn_pad_mask
 from .modules import (
+    Linear,
     PositionalEncoding,
     MultiHeadAttention,
     PositionwiseFeedForward
