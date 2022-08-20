@@ -1,4 +1,4 @@
-# Transformer Ingredients
+# Transformer Ingredients 🌶🌽🥕🧄
 
 Collection of **minimal** building blocks for transformer-based neural networks in PyTorch.
 
