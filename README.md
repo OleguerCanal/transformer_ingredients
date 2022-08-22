@@ -9,13 +9,13 @@ from transformer_ingredients import Linear
 
 class Bert(pl.LightningModule):
     def __init__(self,
-                input_dim=,
-                max_seq_len=,
-                d_model=,
-                d_ff=,
-                num_layers=,
-                num_heads=,
-                dropout_p=):
+                input_dim,
+                max_seq_len,
+                d_model,
+                d_ff,
+                num_layers,
+                num_heads,
+                dropout_p=0.3):
         super().__init__()
         self.transformer_encoder = TransformerEncoder(input_dim=input_dim,
                                                       d_model=d_model,
